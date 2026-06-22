@@ -5,11 +5,7 @@ Bài thực hành Ngày 18 — Human-Centered AI Design
 **Track chọn:** AI Personal Assistant for Students
 **Lát cắt tính năng:** AI quản lý deadline và tạo nhiệm vụ học tập từ email/lịch học (StudyMate AI)
 
-## Cách xem prototype
-
-Mở file [index.html](index.html) trực tiếp bằng trình duyệt (double click hoặc kéo vào tab trình duyệt). Không cần server, không cần cài đặt gì thêm.
-
-## Cấu trúc prototype (theo tab trên cùng)
+## Cấu trúc prototype
 
 - `00` Flow map & phạm vi tính năng
 - `01` Onboarding (S0 — bắt buộc)
