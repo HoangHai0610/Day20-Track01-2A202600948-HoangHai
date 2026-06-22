@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StudyMate AI — Prototype (Day 18 Human-Centered AI Design)</title>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#171a21; --panel2:#1e2230; --border:#2a2f3d;
+    --text:#e8eaf0; --muted:#9aa3b5; --accent:#ff7a3d; --accent2:#3da9ff;
+    --act:#2ecc71; --ask:#f5a623; --dontact:#ff5b5b; --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);}
+  header{padding:18px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;position:sticky;top:0;background:var(--bg);z-index:50;}
+  header h1{font-size:18px;margin:0;}
+  header .sub{color:var(--muted);font-size:12.5px;}
+  nav.tabs{display:flex;gap:6px;flex-wrap:wrap;padding:10px 24px;border-bottom:1px solid var(--border);background:var(--panel);position:sticky;top:64px;z-index:40;}
+  nav.tabs button{background:transparent;border:1px solid var(--border);color:var(--muted);padding:8px 12px;border-radius:999px;cursor:pointer;font-size:12.5px;white-space:nowrap;}
+  nav.tabs button.active{background:var(--accent);color:#1a1300;border-color:var(--accent);font-weight:600;}
+  nav.subtabs{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0 20px;}
+  nav.subtabs button{background:var(--panel2);border:1px solid var(--border);color:var(--text);padding:7px 12px;border-radius:8px;cursor:pointer;font-size:12.5px;}
+  nav.subtabs button.active{border-color:var(--accent2);color:var(--accent2);background:#132233;}
+  main{max-width:1180px;margin:0 auto;padding:24px;}
+  section.page{display:none;}
+  section.page.active{display:block;animation:fade .15s ease;}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  h2{font-size:20px;margin:0 0 6px;}
+  h3{font-size:15px;margin:18px 0 8px;color:var(--accent2);}
+  p.lead{color:var(--muted);margin-top:0;max-width:820px;line-height:1.55;}
+  .grid{display:grid;grid-template-columns:1.25fr .85fr;gap:18px;align-items:start;}
+  @media (max-width:880px){.grid{grid-template-columns:1fr;}}
+  .screen{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:18px;}
+  .phone{background:#101319;border:1px solid var(--border);border-radius:18px;padding:16px;max-width:380px;}
+  .rationale{background:linear-gradient(180deg,#1c1f12,#171a21);border:1px solid #3a3520;border-radius:var(--radius);padding:16px;font-size:13px;line-height:1.6;}
+  .rationale h4{margin:0 0 8px;color:#ffd180;font-size:13px;}
+  .rationale ul{margin:0;padding-left:18px;}
+  .rationale li{margin-bottom:6px;color:#dfe3ee;}
+  .rationale b{color:#ffd180;}
+  .badge{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;margin-right:6px;letter-spacing:.3px;}
+  .badge-act{background:rgba(46,204,113,.15);color:var(--act);border:1px solid var(--act);}
+  .badge-ask{background:rgba(245,166,35,.15);color:var(--ask);border:1px solid var(--ask);}
+  .badge-dontact{background:rgba(255,91,91,.15);color:var(--dontact);border:1px solid var(--dontact);}
+  .badge-conf{background:rgba(61,169,255,.15);color:var(--accent2);border:1px solid var(--accent2);}
+  .card{background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:10px;}
+  .card.flash{animation:flash .6s ease;}
+  @keyframes flash{0%{box-shadow:0 0 0 2px var(--accent2)}100%{box-shadow:0 0 0 0 transparent}}
+  .row{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;}
+  .muted{color:var(--muted);font-size:12.5px;}
+  button.btn{border:none;border-radius:8px;padding:8px 14px;font-size:12.5px;font-weight:600;cursor:pointer;margin:3px 4px 3px 0;}
+  .btn-primary{background:var(--accent);color:#1a1300;}
+  .btn-secondary{background:transparent;border:1px solid var(--border);color:var(--text);}
+  .btn-ghost{background:transparent;color:var(--accent2);text-decoration:underline;padding:4px 0;}
+  .btn-danger{background:transparent;border:1px solid var(--dontact);color:var(--dontact);}
+  select,input[type=text],textarea{background:#0e1117;border:1px solid var(--border);color:var(--text);border-radius:8px;padding:7px 9px;font-size:12.5px;width:100%;}
+  .hidden{display:none !important;}
+  .pill-row{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0;}
+  .source-box{background:#0e1117;border:1px dashed #3a4256;border-radius:8px;padding:10px;font-size:12px;color:#b9c0d4;margin-top:8px;}
+  .progress{height:6px;background:#0e1117;border-radius:4px;overflow:hidden;margin:6px 0;}
+  .progress > div{height:100%;background:var(--accent2);}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  table th,table td{border:1px solid var(--border);padding:8px 10px;text-align:left;}
+  table th{background:#1c2030;color:var(--muted);}
+  .matrix{display:grid;grid-template-columns:120px 1fr 1fr;gap:10px;margin-top:14px;}
+  .matrix .h{font-weight:700;color:var(--muted);font-size:12px;display:flex;align-items:center;}
+  .matrix .cell{background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:12.5px;line-height:1.55;}
+  .matrix .cell h5{margin:0 0 6px;color:var(--accent);font-size:12.5px;}
+  .timeline{border-left:2px solid var(--border);padding-left:16px;margin-left:6px;}
+  .timeline .step{position:relative;margin-bottom:16px;}
+  .timeline .step::before{content:"";position:absolute;left:-22px;top:4px;width:10px;height:10px;border-radius:50%;background:var(--accent2);}
+  .timeline .step.done::before{background:var(--act);}
+  .flowmap{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  .flowmap .node{background:var(--panel2);border:1px solid var(--accent2);border-radius:10px;padding:10px 14px;font-size:12.5px;text-align:center;}
+  .flowmap .arrow{color:var(--muted);font-size:18px;}
+  .checklist label{display:flex;gap:8px;align-items:flex-start;margin-bottom:8px;font-size:13px;color:#dfe3ee;}
+  .toggle{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;}
+  .footer-note{margin-top:30px;padding:14px;border:1px solid var(--border);border-radius:10px;color:var(--muted);font-size:12px;}
+  .step-marker{font-size:11px;color:var(--accent2);font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>StudyMate AI — Prototype</h1>
+    <div class="sub">Day18-Track1 · AI Personal Assistant for Students · Lát cắt: Quản lý deadline &amp; tạo nhiệm vụ học tập từ email/lịch học</div>
+  </div>
+  <div class="sub">Học viên: VuNgocVinh · MãHV: 2A202600864</div>
+</header>
+
+<nav class="tabs" id="mainTabs"></nav>
+
+<main>
+
+<!-- 00 -->
+<section class="page" id="sec-00">
+  <h2>00 — Flow map &amp; phạm vi tính năng</h2>
+  <p class="lead">Bối cảnh: sinh viên dùng <b>StudyMate AI</b> để không bỏ lỡ deadline. AI đọc email trường / lịch học, phát hiện và sắp xếp ưu tiên các nhiệm vụ, đề xuất kế hoạch học, và có thể chủ động nhắc nhở ở mức độ phù hợp. Lát cắt <b>không</b> bao gồm toàn bộ trợ lý sinh viên — chỉ tập trung vào vòng đời: kết nối dữ liệu → phát hiện/tạo nhiệm vụ → ưu tiên → hành động có agency → sai sót &amp; khôi phục.</p>
+
+  <h3>Sơ đồ vòng đời</h3>
+  <div class="flowmap">
+    <div class="node">Onboarding<br><span class="muted">(S0)</span></div>
+    <div class="arrow">→</div>
+    <div class="node">During: kết nối dữ liệu, phát hiện &amp; ưu tiên deadline<br><span class="muted">(S1, S2, S4, S3)</span></div>
+    <div class="arrow">→</div>
+    <div class="node">After / Agency: nhắc chủ động, soạn email<br><span class="muted">(S5, S9)</span></div>
+    <div class="arrow">→</div>
+    <div class="node">Feedback &amp; Recovery<br><span class="muted">(S6, S8)</span></div>
+    <div class="arrow">↺</div>
+    <div class="node">Vòng sử dụng tiếp theo, chính xác hơn</div>
+  </div>
+
+  <h3>Danh sách kịch bản trong prototype</h3>
+  <table>
+    <tr><th>Mã</th><th>Tên kịch bản</th><th>Giai đoạn</th><th>Năng lực chứng minh</th></tr>
+    <tr><td>S0</td><td>First-time onboarding</td><td>Onboarding</td><td>Kỳ vọng đúng, quyền truy cập, kiểm soát</td></tr>
+    <tr><td>S1</td><td>Kết nối dữ liệu học tập</td><td>During</td><td>Ask, quyền riêng tư, rút quyền</td></tr>
+    <tr><td>S2</td><td>Nhiều deadline cùng lúc</td><td>During</td><td>Explainability, điều chỉnh tiêu chí</td></tr>
+    <tr><td>S4</td><td>Tạo nhiệm vụ từ email</td><td>During</td><td>Evidence layer, Ask trước khi thêm</td></tr>
+    <tr><td>S3</td><td>Đề xuất kế hoạch học tối nay</td><td>During</td><td>Đề xuất + bổ sung bối cảnh</td></tr>
+    <tr><td>S5</td><td>AI chủ động nhắc việc</td><td>Agency</td><td>Ranh giới Act/Ask/Don't Act</td></tr>
+    <tr><td>S9</td><td>Soạn email cho giảng viên</td><td>Agency</td><td>Draft → review → gửi (Ask)</td></tr>
+    <tr><td>S6</td><td>AI gán nhầm deadline</td><td>Failure &amp; Recovery</td><td>Vòng lặp khôi phục đầy đủ</td></tr>
+    <tr><td>S8</td><td>Nhắc việc không còn cần làm</td><td>Failure &amp; Recovery</td><td>Cập nhật trạng thái, dừng nhắc sai</td></tr>
+  </table>
+  <p class="muted">Tổng: 1 onboarding + 8 kịch bản khác (vượt yêu cầu tối thiểu 1 + 4).</p>
+</section>
+
+<!-- 01 ONBOARDING -->
+<section class="page" id="sec-01">
+  <h2>01 — Onboarding (S0, bắt buộc)</h2>
+  <p class="lead">Onboarding chia thành 4 bước ngắn, có thể bỏ qua bất kỳ lúc nào — không phải biểu mẫu dài bắt điền hết thông tin trước khi dùng.</p>
+  <div class="grid">
+    <div class="screen">
+      <div class="phone" id="onboardWrap">
+        <div class="step-marker" id="onbStepLabel">BƯỚC 1/4</div>
+        <div id="onbStep1">
+          <h3 style="margin-top:6px">Chào bạn 👋 Mình là StudyMate AI</h3>
+          <p class="muted">Mình giúp bạn:</p>
+          <ul class="muted">
+            <li>Theo dõi deadline từ email trường &amp; lịch học</li>
+            <li>Sắp xếp thứ tự việc cần làm trước</li>
+            <li>Gợi ý kế hoạch học mỗi tối</li>
+          </ul>
+        </div>
+        <div id="onbStep2" class="hidden">
+          <h3 style="margin-top:6px">Mình <u>không</u> tự làm những việc này</h3>
+          <ul class="muted">
+            <li>Không tự nộp bài hoặc đăng ký thay bạn</li>
+            <li>Không tự gửi email cho giảng viên</li>
+            <li>Không tự xoá nhiệm vụ quan trọng</li>
+          </ul>
+          <p class="muted">Những việc trên mình luôn <b style="color:var(--ask)">hỏi trước</b> hoặc để bạn quyết định.</p>
+        </div>
+        <div id="onbStep3" class="hidden">
+          <h3 style="margin-top:6px">Mình cần gì để bắt đầu?</h3>
+          <div class="card row"><span>📧 Email trường</span><span class="muted">Tuỳ chọn</span></div>
+          <div class="card row"><span>📅 Lịch học</span><span class="muted">Tuỳ chọn</span></div>
+          <div class="card row"><span>✍️ Hoặc nhập môn học thủ công</span><span class="muted">Luôn sẵn có</span></div>
+          <p class="muted">Bạn có thể bật/tắt hoặc rút quyền bất kỳ lúc nào trong Cài đặt.</p>
+        </div>
+        <div id="onbStep4" class="hidden">
+          <h3 style="margin-top:6px">Bắt đầu từ đâu?</h3>
+          <button class="btn btn-primary" onclick="onbChoose('email')">Kết nối email trường</button>
+          <button class="btn btn-secondary" onclick="onbChoose('manual')">Nhập môn học thủ công</button>
+          <button class="btn btn-ghost" onclick="onbChoose('skip')">Bỏ qua, thêm sau</button>
+          <div id="onbResult" class="card hidden" style="margin-top:10px"></div>
+        </div>
+        <div class="row" style="margin-top:14px">
+          <button class="btn btn-secondary" onclick="onbPrev()">Quay lại</button>
+          <button class="btn btn-primary" id="onbNextBtn" onclick="onbNext()">Tiếp tục</button>
+        </div>
+      </div>
+    </div>
+    <div class="rationale">
+      <h4>🧭 Design rationale</h4>
+      <ul>
+        <li><b>AI biết gì / chưa biết:</b> chưa biết môn học, lịch, deadline hay thói quen của sinh viên này — vì vậy không thể cá nhân hoá ngay từ màn đầu.</li>
+        <li><b>Vì sao chia 4 bước nhỏ:</b> tránh "biểu mẫu dài" — mỗi bước trả lời đúng 1 câu hỏi (làm được gì / không làm gì / cần gì / bắt đầu đâu).</li>
+        <li><b>Quyền kiểm soát:</b> mọi kết nối dữ liệu đều <span class="badge badge-ask">ASK</span> tuỳ chọn, có thể "Bỏ qua, thêm sau" — không chặn người dùng tiếp tục.</li>
+        <li><b>Rủi ro nếu thiết kế sai:</b> nếu bắt kết nối email ngay từ đầu, người dùng rời bỏ trước khi thấy giá trị thật.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 02 DURING -->
+<section class="page" id="sec-02">
+  <h2>02 — Trong khi AI hỗ trợ / hành động</h2>
+  <nav class="subtabs" id="sub02"></nav>
+
+  <div id="sub02-s1" class="subpage">
+    <div class="grid">
+      <div class="screen">
+        <h3>S1 — Kết nối dữ liệu học tập <span class="badge badge-ask">ASK</span></h3>
+        <div class="card">
+          <div class="row"><b>📧 Email trường</b><button class="btn btn-primary" onclick="connectSource(this,'email')">Kết nối</button></div>
+          <div class="muted">Phạm vi: chỉ đọc tiêu đề &amp; nội dung liên quan đến deadline/bài tập. Không đọc email cá nhân khác.</div>
+        </div>
+        <div class="card">
+          <div class="row"><b>📅 Lịch học</b><button class="btn btn-primary" onclick="connectSource(this,'calendar')">Kết nối</button></div>
+          <div class="muted">Phạm vi: chỉ xem giờ học/giờ thi để tránh xếp việc trùng giờ.</div>
+        </div>
+        <p class="muted" id="s1status">Chưa kết nối nguồn nào. Bạn vẫn có thể dùng StudyMate bằng cách nhập môn học thủ công.</p>
+      </div>
+      <div class="rationale">
+        <h4>🧭 Rationale</h4>
+        <ul>
+          <li><b>AI chưa biết:</b> không có dữ liệu deadline nào cho tới khi được cấp quyền.</li>
+          <li><b>Vì sao Ask:</b> dữ liệu email/lịch là dữ liệu cá nhân nhạy cảm — chi phí sai (lộ thông tin, đọc nhầm phạm vi) cao hơn lợi ích của việc tự động kết nối.</li>
+          <li><b>Khôi phục:</b> có thể rút quyền bất kỳ lúc nào trong Cài đặt → dữ liệu đã đọc trước đó sẽ bị xoá khỏi gợi ý.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="sub02-s2" class="subpage hidden">
+    <div class="grid">
+      <div class="screen">
+        <h3>S2 — Nhiều deadline trong tuần <span class="badge badge-conf">EXPLAINABILITY</span></h3>
+        <div id="s2list"></div>
+        <button class="btn btn-secondary" onclick="openCriteria()">Tôi không đồng ý với thứ tự này</button>
+        <div id="criteriaBox" class="card hidden" style="margin-top:10px">
+          <p class="muted">Điều chỉnh mức quan trọng của từng tiêu chí, rồi áp dụng để xem thứ tự thay đổi thật:</p>
+          <label>Deadline gần <input type="range" id="wDeadline" min="0" max="10" value="5" oninput="recalc()"></label>
+          <label>Ảnh hưởng điểm số <input type="range" id="wGrade" min="0" max="10" value="3" oninput="recalc()"></label>
+          <label>Thời gian cần làm <input type="range" id="wTime" min="0" max="10" value="2" oninput="recalc()"></label>
+          <button class="btn btn-primary" onclick="applyCriteria()">Áp dụng lại thứ tự</button>
+          <p class="muted" id="recalcMsg"></p>
+        </div>
+      </div>
+      <div class="rationale">
+        <h4>🧭 Rationale</h4>
+        <ul>
+          <li><b>Giả định AI đưa ra:</b> deadline gần = quan trọng nhất. Giả định này có thể sai với từng sinh viên.</li>
+          <li><b>Vì sao cần Explainability:</b> nếu chỉ hiện thứ tự mà không giải thích, người dùng không biết có nên tin hay không.</li>
+          <li><b>Quyền kiểm soát:</b> người dùng có thể chỉnh trọng số tiêu chí thay vì chỉ "thích/không thích" thứ tự.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="sub02-s4" class="subpage hidden">
+    <div class="grid">
+      <div class="screen">
+        <h3>S4 — Tạo nhiệm vụ từ email <span class="badge badge-ask">ASK</span> <span class="badge badge-conf">72% tin cậy</span></h3>
+        <div class="source-box">
+          <b>Email nguồn (12/6, từ: lop.giaitich2@vinuni.edu.vn):</b><br>
+          "...nhắc các bạn nộp báo cáo chương 3 trước 23:59 ngày 25/6..."
+        </div>
+        <div class="card" style="margin-top:10px">
+          <div><b>Nhiệm vụ được trích xuất:</b></div>
+          <div class="muted">Môn: Giải tích 2 · Loại: Báo cáo · Hạn: 25/6, 23:59</div>
+          <div class="progress"><div style="width:72%"></div></div>
+          <div class="muted">Độ tin cậy 72% — môn học được suy luận từ địa chỉ email, không phải nói trực tiếp trong nội dung.</div>
+        </div>
+        <button class="btn btn-primary" onclick="addTaskS4()">Thêm vào lịch</button>
+        <button class="btn btn-secondary" onclick="editTaskS4()">Sửa thông tin</button>
+        <button class="btn btn-danger" onclick="rejectTaskS4()">Không phải deadline này</button>
+        <p class="muted" id="s4status"></p>
+      </div>
+      <div class="rationale">
+        <h4>🧭 Rationale</h4>
+        <ul>
+          <li><b>AI đang đưa ra giả định:</b> môn học suy từ địa chỉ email lớp, không phải nội dung nói rõ.</li>
+          <li><b>Hậu quả nếu sai:</b> sinh viên có thể chuẩn bị nhầm môn — vì vậy <span class="badge badge-ask">ASK</span> trước khi thêm vào lịch chính, không tự thêm.</li>
+          <li><b>Bằng chứng:</b> hiển thị nguyên văn email + độ tin cậy để người dùng tự đánh giá trước khi xác nhận.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="sub02-s3" class="subpage hidden">
+    <div class="grid">
+      <div class="screen">
+        <h3>S3 — Đề xuất kế hoạch học tối nay <span class="badge badge-ask">ASK</span></h3>
+        <div class="card">
+          <b>Gợi ý:</b> Tối nay nên ưu tiên ôn <b>Giải tích 2</b> vì còn 1 ngày tới hạn kiểm tra.
+        </div>
+        <button class="btn btn-primary" onclick="acceptPlan()">Đồng ý kế hoạch</button>
+        <button class="btn btn-secondary" onclick="changePlan()">Tôi muốn đổi môn khác</button>
+        <button class="btn btn-secondary" onclick="busyPlan()">Tôi đã có lịch khác tối nay</button>
+        <div id="s3result" class="card hidden" style="margin-top:10px"></div>
+      </div>
+      <div class="rationale">
+        <h4>🧭 Rationale</h4>
+        <ul>
+          <li><b>Vì sao không tự chốt kế hoạch:</b> AI không biết sinh viên đã có lịch hẹn riêng hay tự đánh giá môn khác khó hơn — cần bối cảnh con người mới có.</li>
+          <li><b>Thiết kế:</b> đề xuất kèm lý do ngắn, luôn có lối thoát "đổi môn" hoặc "đã có lịch khác" thay vì ép theo gợi ý.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 03 AGENCY -->
+<section class="page" id="sec-03">
+  <h2>03 — Sau hành động / Agency</h2>
+  <nav class="subtabs" id="sub03"></nav>
+
+  <div id="sub03-s5" class="subpage">
+    <div class="grid">
+      <div class="screen">
+        <h3>S5 — AI chủ động nhắc việc</h3>
+        <table>
+          <tr><th>Tình huống</th><th>Mức tự chủ</th><th>Vì sao</th></tr>
+          <tr><td>Deadline còn &gt;48h</td><td><span class="badge badge-act">ACT</span></td><td>Rủi ro thấp — chỉ là thông báo nhẹ, dễ bỏ qua, dễ hoàn tác</td></tr>
+          <tr><td>Deadline còn 24h, chưa bắt đầu</td><td><span class="badge badge-ask">ASK</span></td><td>AI muốn tạo kế hoạch học rút gọn nhưng cần xác nhận trước khi thêm vào lịch chính</td></tr>
+          <tr><td>Huỷ lịch khác để nhường chỗ ôn bài</td><td><span class="badge badge-dontact">DON'T ACT</span></td><td>Ảnh hưởng tới lịch khác/người khác, khó hoàn tác — luôn để người dùng tự quyết</td></tr>
+        </table>
+        <div class="card" style="margin-top:12px">
+          <div class="row"><span>🔔 Thông báo nhẹ — còn 3 ngày</span><span class="badge badge-act">Tự động gửi</span></div>
+        </div>
+        <div class="card">
+          <div class="row"><span>📋 Đề xuất kế hoạch rút gọn — còn 24h</span><button class="btn btn-primary" onclick="askConfirmS5(this)">Xác nhận thêm vào lịch</button></div>
+        </div>
+      </div>
+      <div class="rationale">
+        <h4>🧭 Rationale</h4>
+        <ul>
+          <li><b>Ranh giới Act/Ask/Don't Act</b> được quyết theo 2 trục: mức ảnh hưởng &amp; khả năng hoàn tác — không phải theo "AI có làm được hay không".</li>
+          <li><b>Không ép Act nguy hiểm:</b> việc huỷ lịch của người khác luôn ở mức Don't Act dù về kỹ thuật AI có thể làm được.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="sub03-s9" class="subpage hidden">
+    <div class="grid">
+      <div class="screen">
+        <h3>S9 — Soạn email xin dời deadline cho giảng viên <span class="badge badge-dontact">DON'T ACT (tự gửi)</span></h3>
+        <textarea id="emailDraft" rows="5">Kính gửi Thầy/Cô,
+Em xin phép được dời hạn nộp báo cáo chương 3 thêm 2 ngày do trùng lịch kiểm tra môn khác. Em mong Thầy/Cô xem xét.
+Em cảm ơn.</textarea>
+        <label class="toggle" style="margin-top:8px"><input type="checkbox" id="reviewedBox" onchange="toggleSendBtn()"> Tôi đã xem lại nội dung email</label>
+        <button class="btn btn-primary" id="sendEmailBtn" disabled onclick="sendEmailS9()">Gửi email</button>
+        <p class="muted" id="s9status"></p>
+      </div>
+      <div class="rationale">
+        <h4>🧭 Rationale</h4>
+        <ul>
+          <li><b>Vì sao Don't Act cho việc gửi:</b> ảnh hưởng tới quan hệ với giảng viên, khó thu hồi sau khi gửi — AI chỉ soạn nháp.</li>
+          <li><b>Người dùng giữ quyền:</b> nút gửi chỉ kích hoạt sau khi người dùng tick "đã xem lại" — không cho gửi nhanh bằng một cú bấm.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 04 FAILURE & RECOVERY -->
+<section class="page" id="sec-04">
+  <h2>04 — Failure, Uncertainty &amp; Recovery</h2>
+  <nav class="subtabs" id="sub04"></nav>
+
+  <div id="sub04-s6" class="subpage">
+    <div class="grid">
+      <div class="screen">
+        <h3>S6 — AI gán nhầm deadline cho môn học <span class="badge badge-conf">Vòng lặp khôi phục đầy đủ</span></h3>
+        <div class="timeline" id="s6timeline">
+          <div class="step done" id="s6step1">
+            <b>1. AI sai:</b> Task "Nộp báo cáo — Môn: Xác suất thống kê — Hạn 25/6" được tạo tự động (đã suy luận sai môn).
+            <div><button class="btn btn-secondary" onclick="s6next(2)">Người dùng mở nhiệm vụ này</button></div>
+          </div>
+          <div class="step hidden" id="s6step2">
+            <b>2. Người dùng phát hiện:</b> chọn lý do báo sai.
+            <div class="pill-row">
+              <button class="btn btn-secondary" onclick="s6reason('Sai môn học')">Sai môn học</button>
+              <button class="btn btn-secondary" onclick="s6reason('Sai ngày hạn')">Sai ngày hạn</button>
+              <button class="btn btn-secondary" onclick="s6reason('Không phải bài tập')">Không phải bài tập</button>
+            </div>
+          </div>
+          <div class="step hidden" id="s6step3">
+            <b>3. Người dùng bổ sung bối cảnh:</b>
+            <div class="row" style="margin-top:6px">
+              <select id="s6correct"><option>Giải tích 2</option><option>Kinh tế vi mô</option><option>Triết học</option></select>
+              <button class="btn btn-primary" onclick="s6next(4)">Xác nhận môn đúng</button>
+            </div>
+          </div>
+          <div class="step hidden" id="s6step4">
+            <b>4. Hệ thống xác nhận đã hiểu:</b>
+            <div class="card" id="s6confirm"></div>
+          </div>
+          <div class="step hidden" id="s6step5">
+            <b>5. Hệ thống đề xuất khôi phục:</b>
+            <div class="card">Đã chuyển nhiệm vụ sang môn đúng. Có muốn StudyMate rà lại các nhiệm vụ khác trích từ email này không?
+              <div class="row" style="margin-top:6px"><button class="btn btn-primary" onclick="s6next(6)">Có, kiểm tra lại</button><button class="btn btn-secondary" onclick="s6next(6)">Không cần</button></div>
+            </div>
+          </div>
+          <div class="step hidden" id="s6step6">
+            <b>6. Người dùng tiếp tục mục tiêu:</b> danh sách nhiệm vụ đã cập nhật, sinh viên tiếp tục xem lịch ôn tập như bình thường.
+            <div><button class="btn btn-secondary" onclick="s6next(7)">Đóng nhiệm vụ, quay lại lịch ôn tập</button></div>
+          </div>
+          <div class="step hidden" id="s6step7">
+            <b>7. Hệ thống nói rõ điều đã ghi nhớ:</b>
+            <div class="card muted">"Mình sẽ kiểm tra kỹ tên môn học hơn khi trích từ email của lớp này lần sau." <br>Không ghi nhớ: nội dung email cụ thể này không được lưu trữ thêm ngoài nhiệm vụ đã sửa.</div>
+          </div>
+        </div>
+      </div>
+      <div class="rationale">
+        <h4>🧭 Rationale</h4>
+        <ul>
+          <li><b>Vì sao có 7 bước:</b> đáp ứng đầy đủ vòng lặp bắt buộc — sai → phát hiện → phản hồi → xác nhận hiểu → đề xuất khôi phục → tiếp tục mục tiêu → minh bạch điều được ghi nhớ.</li>
+          <li><b>Phản hồi không phải nút "không thích":</b> người dùng chọn đúng <i>loại lỗi</i> (sai môn / sai ngày / không phải bài tập) để hệ thống học đúng nguyên nhân.</li>
+          <li><b>Hành vi ≠ sự thật chuẩn:</b> hệ thống không tự đoán lỗi gì, luôn hỏi loại lỗi cụ thể trước khi sửa.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="sub04-s8" class="subpage hidden">
+    <div class="grid">
+      <div class="screen">
+        <h3>S8 — AI nhắc một việc không còn cần làm</h3>
+        <div class="card" id="s8notif">🔔 Nhắc: Họp nhóm Marketing 19h hôm nay</div>
+        <button class="btn btn-secondary" id="s8btn" onclick="s8open()">Việc này đã xử lý rồi</button>
+        <div id="s8reasonBox" class="card hidden" style="margin-top:10px">
+          <p class="muted">Vì sao việc này không còn cần làm?</p>
+          <button class="btn btn-secondary" onclick="s8resolve('Đã huỷ')">Đã huỷ</button>
+          <button class="btn btn-secondary" onclick="s8resolve('Đã hoàn thành')">Đã hoàn thành</button>
+          <button class="btn btn-secondary" onclick="s8resolve('Đã gia hạn')">Đã gia hạn</button>
+        </div>
+        <div id="s8result" class="card hidden" style="margin-top:10px"></div>
+      </div>
+      <div class="rationale">
+        <h4>🧭 Rationale</h4>
+        <ul>
+          <li><b>Vì sao vẫn hỏi lý do dù chỉ là dừng nhắc:</b> lý do "Đã huỷ" vs "Đã hoàn thành" dẫn tới hành vi ghi nhớ khác nhau cho lần sau.</li>
+          <li><b>Don't Act ngay trong recovery:</b> hệ thống không tự suy luận việc tương tự là "đã huỷ" trong tương lai — vì việc này ảnh hưởng người khác trong nhóm, luôn cần xác nhận lại.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 05 FEEDBACK MATRIX -->
+<section class="page" id="sec-05">
+  <h2>05 — Feedback loop 2×2</h2>
+  <p class="lead">Bốn loại tín hiệu bắt buộc, lấy ví dụ trực tiếp từ các kịch bản ở trên.</p>
+  <div class="matrix">
+    <div class="h"></div>
+    <div class="h">Explicit — Tường minh</div>
+    <div class="h">Implicit — Ngầm định</div>
+
+    <div class="h">User → System</div>
+    <div class="cell">
+      <h5>Báo sai loại lỗi (S6)</h5>
+      Người dùng chọn đúng lý do "Sai môn học" thay vì chỉ bấm không thích.<br>
+      <span class="muted">Thời điểm: ngay khi phát hiện nhiệm vụ sai · Mục tiêu: hệ thống sửa đúng nguyên nhân, không đoán · Người dùng biết &amp; kiểm soát hoàn toàn lựa chọn này.</span>
+    </div>
+    <div class="cell">
+      <h5>Bỏ qua gợi ý ưu tiên 3 lần liên tiếp (S2)</h5>
+      Hệ thống quan sát hành vi không tương tác với thứ tự đề xuất.<br>
+      <span class="muted">Diễn giải dự định: giảm độ tự tin hiển thị thứ tự, KHÔNG tự suy ra "người dùng ghét AI" — vì bỏ qua có thể do bận, không phải vì sai. Không dùng để tự tăng mức độ tự chủ.</span>
+    </div>
+
+    <div class="h">System → User</div>
+    <div class="cell">
+      <h5>Badge độ tin cậy + nguồn email (S4)</h5>
+      "72% tin cậy" + nguyên văn email hiển thị ngay trong UI.<br>
+      <span class="muted">Thời điểm: trước khi người dùng xác nhận thêm nhiệm vụ · Hành động tiếp theo rõ ràng: Thêm / Sửa / Từ chối.</span>
+    </div>
+    <div class="cell">
+      <h5>Màu &amp; vị trí nút theo mức tự chủ</h5>
+      Nút <span class="badge badge-act">ACT</span> hiển thị dạng badge tĩnh (không cần bấm), nút <span class="badge badge-ask">ASK</span> luôn là nút cần xác nhận màu cam nổi bật.<br>
+      <span class="muted">Giúp người dùng tự nhận ra mức độ kiểm soát mà không cần đọc giải thích dài.</span>
+    </div>
+  </div>
+  <div class="footer-note">
+    Nguyên tắc áp dụng: feedback đặt tại điểm dừng tự nhiên (sau khi xem nhiệm vụ, sau khi nhận thông báo) — không chèn ngang lúc người dùng đang đọc nội dung; implicit signal không được dùng để tự động tăng quyền hành động của AI mà chỉ để giảm mức tự tin hiển thị.
+  </div>
+</section>
+
+<!-- 06 RATIONALE -->
+<section class="page" id="sec-06">
+  <h2>06 — Design rationale tổng hợp</h2>
+  <table>
+    <tr><th>Quyết định</th><th>AI biết / chưa biết</th><th>Rủi ro nếu sai</th><th>Act/Ask/Don't Act</th><th>Vì sao</th></tr>
+    <tr><td>Kết nối email/lịch (S1)</td><td>Chưa có dữ liệu nào</td><td>Lộ dữ liệu cá nhân</td><td><span class="badge badge-ask">ASK</span></td><td>Dữ liệu nhạy cảm, cần đồng ý rõ ràng</td></tr>
+    <tr><td>Sắp ưu tiên deadline (S2)</td><td>Biết hạn, chưa biết mức quan trọng thật với từng người</td><td>Sinh viên học sai thứ tự</td><td><span class="badge badge-ask">ASK</span> (đề xuất, có thể chỉnh)</td><td>Giả định có thể sai cho từng cá nhân</td></tr>
+    <tr><td>Tạo nhiệm vụ từ email (S4)</td><td>Suy luận môn học từ địa chỉ gửi, độ tin cậy 72%</td><td>Chuẩn bị nhầm môn</td><td><span class="badge badge-ask">ASK</span></td><td>Hậu quả trung bình, dễ phát hiện nếu hiện bằng chứng</td></tr>
+    <tr><td>Thông báo nhẹ &gt;48h (S5)</td><td>Biết deadline chắc chắn từ lịch đã xác nhận</td><td>Thấp — chỉ là nhắc nhở</td><td><span class="badge badge-act">ACT</span></td><td>Rủi ro thấp, dễ bỏ qua, dễ hoàn tác</td></tr>
+    <tr><td>Huỷ lịch khác (S5)</td><td>Biết có xung đột lịch</td><td>Cao — ảnh hưởng người khác, khó hoàn tác</td><td><span class="badge badge-dontact">DON'T ACT</span></td><td>Thiếu thẩm quyền quyết định thay người dùng</td></tr>
+    <tr><td>Gửi email cho giảng viên (S9)</td><td>Có nội dung nháp do người dùng yêu cầu</td><td>Cao — ảnh hưởng quan hệ, khó thu hồi</td><td><span class="badge badge-dontact">DON'T ACT</span> (tự gửi)</td><td>Chỉ soạn nháp, người dùng luôn bấm gửi</td></tr>
+    <tr><td>Sửa lỗi gán nhầm môn (S6)</td><td>Sau khi người dùng xác nhận môn đúng</td><td>Trung bình nếu không cập nhật đủ các nhiệm vụ liên quan</td><td><span class="badge badge-ask">ASK</span> rà soát thêm</td><td>Không tự giả định các nhiệm vụ khác cũng sai theo</td></tr>
+  </table>
+</section>
+
+<!-- 07 DEMO -->
+<section class="page" id="sec-07">
+  <h2>07 — Demo path (5 phút)</h2>
+  <table>
+    <tr><th>Thời gian</th><th>Việc làm trong prototype</th></tr>
+    <tr><td>0:00–0:30</td><td>Mở tab <b>00</b>: giới thiệu người dùng, vấn đề, lát cắt tính năng.</td></tr>
+    <tr><td>0:30–1:15</td><td>Tab <b>01 Onboarding</b>: chạy hết 4 bước, bấm "Bỏ qua, thêm sau" để cho thấy không ép buộc.</td></tr>
+    <tr><td>1:15–2:15</td><td>Tab <b>02</b> → S2 (giải thích thứ tự ưu tiên) và S5 trong tab <b>03</b> (so sánh Act/Ask/Don't Act).</td></tr>
+    <tr><td>2:15–3:45</td><td>Tab <b>04</b>: chạy đầy đủ vòng lặp S6 từng bước 1→7, sau đó lướt nhanh S8.</td></tr>
+    <tr><td>3:45–4:45</td><td>Tab <b>05</b>: chỉ ra 4 ô trong ma trận feedback và cách diễn giải.</td></tr>
+    <tr><td>4:45–5:00</td><td>Tab <b>06</b>: nêu 1 quyết định thiết kế quan trọng nhất (ranh giới Ask cho S4) và rủi ro còn lại (độ tin cậy có thể sai khi email không rõ ràng hơn nữa).</td></tr>
+  </table>
+  <div class="footer-note">Toàn bộ flow chạy ngay trong file này, không cần kết nối mô hình hay API thật. Dữ liệu và phản hồi AI đều được viết sẵn.</div>
+</section>
+
+</main>
+
+<script>
+const tabs = [
+  {id:'00', label:'00 · Flow map'},
+  {id:'01', label:'01 · Onboarding'},
+  {id:'02', label:'02 · Trong hành động'},
+  {id:'03', label:'03 · Agency'},
+  {id:'04', label:'04 · Failure & Recovery'},
+  {id:'05', label:'05 · Feedback 2×2'},
+  {id:'06', label:'06 · Rationale'},
+  {id:'07', label:'07 · Demo path'},
+];
+const tabsNav = document.getElementById('mainTabs');
+tabs.forEach((t,i)=>{
+  const b = document.createElement('button');
+  b.textContent = t.label;
+  b.onclick = ()=>showSection(t.id);
+  b.id = 'tabbtn-'+t.id;
+  tabsNav.appendChild(b);
+});
+function showSection(id){
+  document.querySelectorAll('section.page').forEach(s=>s.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('active');
+  tabs.forEach(t=>document.getElementById('tabbtn-'+t.id).classList.toggle('active', t.id===id));
+}
+showSection('00');
+
+function makeSubtabs(navId, groupId, items, defaultId){
+  const nav = document.getElementById(navId);
+  items.forEach(it=>{
+    const b = document.createElement('button');
+    b.textContent = it.label;
+    b.id = 'sub-'+groupId+'-'+it.id;
+    b.onclick = ()=>showSub(groupId, it.id, items);
+    nav.appendChild(b);
+  });
+  showSub(groupId, defaultId, items);
+}
+function showSub(groupId, id, items){
+  items.forEach(it=>{
+    document.getElementById('sub'+groupId+'-'+it.id).classList.toggle('hidden', it.id!==id);
+    document.getElementById('sub-'+groupId+'-'+it.id).classList.toggle('active', it.id===id);
+  });
+}
+makeSubtabs('sub02','02',[{id:'s1',label:'S1 Kết nối dữ liệu'},{id:'s2',label:'S2 Nhiều deadline'},{id:'s4',label:'S4 Email → nhiệm vụ'},{id:'s3',label:'S3 Kế hoạch tối nay'}],'s1');
+makeSubtabs('sub03','03',[{id:'s5',label:'S5 Nhắc chủ động'},{id:'s9',label:'S9 Email giảng viên'}],'s5');
+makeSubtabs('sub04','04',[{id:'s6',label:'S6 Gán nhầm deadline'},{id:'s8',label:'S8 Nhắc việc đã xử lý'}],'s6');
+
+/* ---- 01 Onboarding ---- */
+let onbStep = 1;
+function onbRender(){
+  for(let i=1;i<=4;i++) document.getElementById('onbStep'+i).classList.toggle('hidden', i!==onbStep);
+  document.getElementById('onbStepLabel').textContent = 'BƯỚC '+onbStep+'/4';
+}
+function onbNext(){ if(onbStep<4){ onbStep++; onbRender(); } }
+function onbPrev(){ if(onbStep>1){ onbStep--; onbRender(); } }
+function onbChoose(choice){
+  const box = document.getElementById('onbResult');
+  box.classList.remove('hidden');
+  if(choice==='email') box.textContent = '✅ Đã yêu cầu kết nối email trường (cần xác nhận quyền truy cập ở bước sau).';
+  if(choice==='manual') box.textContent = '✅ Bạn có thể nhập môn học ngay trong màn hình chính.';
+  if(choice==='skip') box.textContent = 'Đã bỏ qua. Bạn vẫn dùng được StudyMate, có thể kết nối sau trong Cài đặt.';
+}
+
+/* ---- S1 ---- */
+function connectSource(btn, type){
+  btn.textContent = 'Đã kết nối ✓';
+  btn.disabled = true;
+  document.getElementById('s1status').textContent = (type==='email' ? 'Email trường' : 'Lịch học') + ' đã kết nối — bạn có thể rút quyền bất kỳ lúc nào trong Cài đặt.';
+}
+
+/* ---- S2 ---- */
+const s2items = [
+  {id:'s2-1', name:'Bài kiểm tra Giải tích 2', due:'còn 1 ngày', deadline:9, grade:8, time:6, why:'Yếu tố: hạn gần nhất (trọng số cao) + ảnh hưởng điểm số cao + thời gian ôn cần nhiều.'},
+  {id:'s2-2', name:'Báo cáo nhóm Marketing', due:'còn 2 ngày', deadline:7, grade:5, time:8, why:'Yếu tố: deadline gần + cần phối hợp với nhóm (rủi ro trễ nếu để muộn) + tốn nhiều thời gian hoàn thành.'},
+  {id:'s2-3', name:'Đăng ký CLB học thuật', due:'còn 3 ngày', deadline:5, grade:2, time:2, why:'Yếu tố: ảnh hưởng thấp tới điểm số, thời gian làm ít, nhưng có hạn cứng không gia hạn.'},
+];
+function renderS2(){
+  const wrap = document.getElementById('s2list');
+  wrap.innerHTML = s2items.map((it,i)=>`
+    <div class="card row"><span>${i+1}. ${it.name} <span class="muted">— ${it.due}</span></span><button class="btn btn-ghost" onclick="toggleWhy('${it.id}')">Vì sao xếp ở đây?</button></div>
+    <div class="source-box hidden" id="${it.id}">${it.why}</div>
+  `).join('');
+}
+renderS2();
+function toggleWhy(id){ document.getElementById(id).classList.toggle('hidden'); }
+function openCriteria(){ document.getElementById('criteriaBox').classList.toggle('hidden'); }
+function recalc(){ document.getElementById('recalcMsg').textContent = 'Đang tính lại theo trọng số mới... bấm "Áp dụng lại thứ tự" để xem kết quả.'; }
+function applyCriteria(){
+  const wD = +document.getElementById('wDeadline').value;
+  const wG = +document.getElementById('wGrade').value;
+  const wT = +document.getElementById('wTime').value;
+  s2items.sort((a,b)=>{
+    const scoreA = a.deadline*wD + a.grade*wG + a.time*wT;
+    const scoreB = b.deadline*wD + b.grade*wG + b.time*wT;
+    return scoreB - scoreA;
+  });
+  renderS2();
+  document.getElementById('recalcMsg').textContent = 'Đã áp dụng: thứ tự đã được tính lại theo trọng số bạn vừa chọn (Deadline ×'+wD+', Điểm số ×'+wG+', Thời gian ×'+wT+').';
+}
+
+/* ---- S4 ---- */
+function addTaskS4(){ document.getElementById('s4status').textContent = '✅ Đã thêm vào lịch với nhãn "trích từ email — đã xác nhận".'; }
+function editTaskS4(){ document.getElementById('s4status').textContent = '✏️ Mở form sửa môn học / ngày hạn trước khi thêm.'; }
+function rejectTaskS4(){ document.getElementById('s4status').textContent = '🗑️ Đã bỏ nhiệm vụ này. StudyMate sẽ cẩn trọng hơn với email tương tự từ nguồn này.'; }
+
+/* ---- S3 ---- */
+function acceptPlan(){ show3('✅ Đã thêm kế hoạch ôn Giải tích 2 vào tối nay.'); }
+function changePlan(){
+  show3('🔁 Chọn môn khác: <select id="s3altSubject" onchange="confirmAlt()"><option value="">— chọn môn —</option><option>Kinh tế vi mô</option><option>Triết học</option></select><div id="s3altMsg" class="muted" style="margin-top:6px"></div>');
+}
+function confirmAlt(){
+  const v = document.getElementById('s3altSubject').value;
+  if(v) document.getElementById('s3altMsg').textContent = 'Đã đổi kế hoạch tối nay sang môn "'+v+'". StudyMate ghi nhận lựa chọn này cho lần đề xuất sau.';
+}
+function busyPlan(){ show3('🗓️ Đã ghi nhận bạn có lịch khác — AI đề xuất khung giờ ôn 30 phút trước khi đi ngủ thay thế.'); }
+function show3(html){ const b=document.getElementById('s3result'); b.classList.remove('hidden'); b.innerHTML = html; }
+
+/* ---- S5 ---- */
+function askConfirmS5(btn){ btn.textContent = 'Đã thêm vào lịch ✓'; btn.disabled = true; }
+
+/* ---- S9 ---- */
+function toggleSendBtn(){ document.getElementById('sendEmailBtn').disabled = !document.getElementById('reviewedBox').checked; }
+function sendEmailS9(){ document.getElementById('s9status').textContent = '📨 Email đã gửi lúc ' + new Date().toLocaleTimeString('vi-VN') + '.'; }
+
+/* ---- S6 full loop ---- */
+function s6next(step){
+  document.getElementById('s6step'+step).classList.remove('hidden');
+  document.getElementById('s6step'+step).classList.add('done');
+  document.getElementById('s6step'+step).scrollIntoView({behavior:'smooth', block:'nearest'});
+  if(step===5){ setTimeout(()=>{}, 0); }
+}
+function s6reason(reason){
+  document.getElementById('s6step2').dataset.reason = reason;
+  s6next(3);
+}
+// override step4 confirm text generation when reaching step4
+const origS6next = s6next;
+s6next = function(step){
+  origS6next(step);
+  if(step===4){
+    const correct = document.getElementById('s6correct').value;
+    document.getElementById('s6confirm').textContent = 'Mình hiểu: nhiệm vụ này thuộc môn "'+correct+'", không phải Xác suất thống kê. Đang cập nhật...';
+    setTimeout(()=>s6next(5), 600);
+  }
+};
+
+/* ---- S8 ---- */
+function s8open(){ document.getElementById('s8reasonBox').classList.remove('hidden'); }
+function s8resolve(reason){
+  document.getElementById('s8notif').remove();
+  const r = document.getElementById('s8result');
+  r.classList.remove('hidden');
+  r.innerHTML = 'Đã cập nhật trạng thái: Họp nhóm — <b>'+reason+'</b>. Mình sẽ dừng nhắc.<br><span class="muted">Mình sẽ không tự đoán việc tương tự là "'+reason+'" trong tương lai — việc này ảnh hưởng người khác trong nhóm, nên luôn cần bạn xác nhận lại.</span>';
+}
+</script>
+</body>
+</html>
