@@ -729,6 +729,49 @@
     .timeline-item b { display: block; font-size: 12px; }
     .timeline-item small { color: var(--muted); font-size: 10px; }
 
+    .priority-list {
+      display: grid;
+      gap: 9px;
+      margin: 14px 0;
+    }
+
+    .priority-item {
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr);
+      gap: 10px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+    }
+
+    .priority-rank {
+      display: grid;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      color: #fff;
+      background: var(--blue);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .priority-item:first-child {
+      border-color: #f2bd9d;
+      background: var(--orange-soft);
+    }
+
+    .priority-item:first-child .priority-rank { background: var(--orange); }
+    .priority-item b { display: block; color: var(--navy); font-size: 12px; }
+    .priority-item small { display: block; margin-top: 3px; color: var(--muted); font-size: 10px; }
+    .priority-reason {
+      margin-top: 6px;
+      color: #52616d;
+      font-size: 10px;
+      line-height: 1.4;
+    }
+
     .event-log {
       max-height: 510px;
       overflow: auto;
@@ -1417,7 +1460,43 @@
                     <h4>Evidence of value</h4>
                     <p class="small muted">StudyMate đã gom nguồn, kiểm tra deadline và đặt task trước “Đăng ký CLB” vì hạn gần và ảnh hưởng điểm số cao hơn.</p>
                   </div>
-                  <button class="btn btn-secondary btn-block" type="button" onclick="logNextStep()">Xem 3 việc ưu tiên tuần này</button>
+                  <button class="btn btn-secondary btn-block" type="button" onclick="showPriorityList()">Xem 3 việc ưu tiên tuần này</button>
+                </div>
+
+                <div class="prototype-screen" id="proto-priorities">
+                  <span class="tag">Kế hoạch tuần · đã ưu tiên</span>
+                  <h3 style="margin-top:13px">3 việc nên xử lý trước</h3>
+                  <p class="micro">Thứ tự dựa trên deadline, ảnh hưởng điểm số và thời gian cần hoàn thành. Bạn vẫn có thể thay đổi.</p>
+                  <div class="priority-list">
+                    <div class="priority-item">
+                      <span class="priority-rank">1</span>
+                      <div>
+                        <b id="priorityTaskName">Nộp báo cáo Chương 3</b>
+                        <small id="priorityTaskMeta">Giải tích 2 · hạn 25/06, 23:59</small>
+                        <div class="priority-reason">Hạn gần, ảnh hưởng điểm số cao và cần một phiên tập trung tối nay.</div>
+                      </div>
+                    </div>
+                    <div class="priority-item">
+                      <span class="priority-rank">2</span>
+                      <div>
+                        <b>Hoàn thiện slide thuyết trình nhóm</b>
+                        <small>Marketing căn bản · hạn 27/06, 18:00</small>
+                        <div class="priority-reason">Cần phối hợp với nhóm; trì hoãn có thể ảnh hưởng tiến độ của người khác.</div>
+                      </div>
+                    </div>
+                    <div class="priority-item">
+                      <span class="priority-rank">3</span>
+                      <div>
+                        <b>Đăng ký CLB học thuật</b>
+                        <small>Hoạt động ngoại khóa · hạn 28/06, 17:00</small>
+                        <div class="priority-reason">Có hạn cứng nhưng thời gian xử lý ngắn và không ảnh hưởng điểm số.</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="card tint-blue" style="padding:12px">
+                    <p class="small" style="margin:0"><b>Vì sao task đầu đứng số 1?</b><br><span class="muted">Deadline gần nhất và ảnh hưởng điểm số cao hơn hai việc còn lại.</span></p>
+                  </div>
+                  <button class="btn btn-secondary btn-block" type="button" onclick="backToValue()">← Quay lại kết quả</button>
                 </div>
               </div>
             </div>
@@ -2033,6 +2112,8 @@
 
       document.getElementById("valueTaskName").textContent = taskName;
       document.getElementById("valueTaskMeta").textContent = `${subject} · hạn ${due}`;
+      document.getElementById("priorityTaskName").textContent = taskName;
+      document.getElementById("priorityTaskMeta").textContent = `${subject} · hạn ${due}`;
       showPrototypeScreen("proto-value", 100);
 
       window.setTimeout(() => {
@@ -2040,8 +2121,13 @@
       }, 150);
     }
 
-    function logNextStep() {
+    function showPriorityList() {
       emitEvent("priority_list_viewed", { task_count: 3 });
+      showPrototypeScreen("proto-priorities", 100);
+    }
+
+    function backToValue() {
+      showPrototypeScreen("proto-value", 100);
     }
 
     function chooseRecoveryReason(reason) {
